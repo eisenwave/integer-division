@@ -37,20 +37,29 @@ template<__integer T>
 inline constexpr div_result<T> __div_rem_offset_quotient(T x, T y, T d) {
   if constexpr (std::is_signed_v<T>) {
     using U = std::make_unsigned_t<T>;
-    return {.quotient = x / y + d, .remainder = T(U(x % y) - U(d) * U(y))};
+    return {
+      .quotient = T(x / y + d),
+      .remainder = T(U(x % y) - U(d) * U(y)),
+    };
   } else {
-    return {.quotient = x / y + d, .remainder = x % y - d * y};
+    return {
+      .quotient = T(x / y + d),
+      .remainder = T(x % y - d * y),
+    };
   }
 }
 
 template<__integer T>
 constexpr div_result<T> div_rem_to_zero(T x, T y) {
-  return {.quotient = x / y, .remainder = x % y};
+  return {
+    .quotient = T(x / y),
+    .remainder = T(x % y),
+  };
 }
 
 template<__integer T>
 constexpr T div_to_zero(T x, T y) {
-  return x / y;
+  return T(x / y);
 }
 
 template<__integer T>
@@ -70,8 +79,8 @@ constexpr div_result<T> div_rem_to_inf(T x, T y) {
   bool quotient_positive = (x ^ y) >= 0;
   bool adjust = (x % y != 0) & quotient_positive;
   return {
-      .quotient = x / y + T(adjust),
-      .remainder = x % y - T(adjust) * y,
+      .quotient = T(x / y + T(adjust)),
+      .remainder = T(x % y - T(adjust) * y),
   };
 }
 
@@ -85,8 +94,8 @@ constexpr div_result<T> div_rem_to_neg_inf(T x, T y) {
   bool quotient_negative = (x ^ y) < 0;
   bool adjust = (x % y != 0) & quotient_negative;
   return {
-      .quotient = x / y - T(adjust),
-      .remainder = x % y + T(adjust) * y,
+      .quotient = T(x / y - T(adjust)),
+      .remainder = T(x % y + T(adjust) * y),
   };
 }
 
