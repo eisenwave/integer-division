@@ -75,7 +75,7 @@ constexpr T div_away_zero(T x, T y) {
 }
 
 template<__integer T>
-constexpr div_result<T> div_rem_to_inf(T x, T y) {
+constexpr div_result<T> div_rem_to_pos_inf(T x, T y) {
   bool quotient_positive = (x ^ y) >= 0;
   bool adjust = (x % y != 0) & quotient_positive;
   return {
@@ -85,8 +85,8 @@ constexpr div_result<T> div_rem_to_inf(T x, T y) {
 }
 
 template<__integer T>
-constexpr T div_to_inf(T x, T y) {
-  return div_rem_to_inf(x, y).quotient;
+constexpr T div_to_pos_inf(T x, T y) {
+  return div_rem_to_pos_inf(x, y).quotient;
 }
 
 template<__integer T>
@@ -157,7 +157,7 @@ constexpr T div_ties_away_zero(T x, T y) {
 }
 
 template<__integer T>
-constexpr div_result<T> div_rem_ties_to_inf(T x, T y) {
+constexpr div_result<T> div_rem_ties_to_pos_inf(T x, T y) {
   T quotient_sign = __sgn2(x) * __sgn2(y);
   T abs_rem = x % y * __sgn2(x);
   T abs_half_y = y / 2 * __sgn2(y);
@@ -166,8 +166,8 @@ constexpr div_result<T> div_rem_ties_to_inf(T x, T y) {
 }
 
 template<__integer T>
-constexpr T div_ties_to_inf(T x, T y) {
-  return div_rem_ties_to_inf(x, y).quotient;
+constexpr T div_ties_to_pos_inf(T x, T y) {
+  return div_rem_ties_to_pos_inf(x, y).quotient;
 }
 
 template<__integer T>

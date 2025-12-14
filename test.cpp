@@ -58,12 +58,12 @@ constexpr bool is_valid_division_away_zero(T x, T y, T q, T r) {
 }
 
 template<class T>
-constexpr bool is_valid_division_to_inf(T x, T y, T q, T r) {
+constexpr bool is_valid_division_to_pos_inf(T x, T y, T q, T r) {
   if (!is_valid_division(x, y, q, r)) return false;
   if constexpr (std::is_signed_v<T>) {
     return r == 0 || __sgn2(r) != __sgn2(y);
   } else {
-    return big_int(q) == div_to_inf(big_int(x), big_int(y));
+    return big_int(q) == div_to_pos_inf(big_int(x), big_int(y));
   }
 }
 
@@ -114,7 +114,7 @@ static_assert(div_rem_away_zero(72'777'531u, 3'405'476'348u).quotient == 1);
 //            dividend    == quotient * divisor + remainder
 static_assert(72'777'531u == 1u * 3'405'476'348u + 962'268'479u);
 static_assert(div_rem_away_zero(72'777'531u, 3'405'476'348u).remainder == 962'268'479u);
-static_assert(div_rem_to_inf(72'777'531u, 3'405'476'348u).remainder == 962'268'479u);
+static_assert(div_rem_to_pos_inf(72'777'531u, 3'405'476'348u).remainder == 962'268'479u);
 
 template<class T>
 constexpr bool is_valid_division_ties_to_zero(T x, T y, T q, T r) {
@@ -136,7 +136,7 @@ constexpr bool is_valid_division_ties_away_zero(T x, T y, T q, T r) {
 }
 
 template<class T>
-constexpr bool is_valid_division_ties_to_inf(T x, T y, T q, T r) {
+constexpr bool is_valid_division_ties_to_pos_inf(T x, T y, T q, T r) {
   if constexpr (std::is_signed_v<T>) {
     return is_valid_division_to_nearest(x, y, q, r, __sgn2(r) != __sgn2(y));
   } else {
@@ -277,28 +277,28 @@ void fuzz_test_mod(std::string_view name) {
 int main() {
   RUN_TEST(int, div_rem_to_zero, is_valid_division);
   RUN_TEST(int, div_rem_away_zero, is_valid_division_away_zero);
-  RUN_TEST(int, div_rem_to_inf, is_valid_division_to_inf);
+  RUN_TEST(int, div_rem_to_pos_inf, is_valid_division_to_pos_inf);
   RUN_TEST(int, div_rem_to_neg_inf, is_valid_division_to_neg_inf);
   RUN_TEST(int, div_rem_to_odd, is_valid_division_to_odd);
   RUN_TEST(int, div_rem_to_even, is_valid_division_to_even);
 
   RUN_TEST(int, div_rem_ties_to_zero, is_valid_division_ties_to_zero);
   RUN_TEST(int, div_rem_ties_away_zero, is_valid_division_ties_away_zero);
-  RUN_TEST(int, div_rem_ties_to_inf, is_valid_division_ties_to_inf);
+  RUN_TEST(int, div_rem_ties_to_pos_inf, is_valid_division_ties_to_pos_inf);
   RUN_TEST(int, div_rem_ties_to_neg_inf, is_valid_division_ties_to_neg_inf);
   RUN_TEST(int, div_rem_ties_to_odd, is_valid_division_ties_to_odd);
   RUN_TEST(int, div_rem_ties_to_even, is_valid_division_ties_to_even);
 
   RUN_TEST(unsigned, div_rem_to_zero, is_valid_division);
   RUN_TEST(unsigned, div_rem_away_zero, is_valid_division_away_zero);
-  RUN_TEST(unsigned, div_rem_to_inf, is_valid_division_to_inf);
+  RUN_TEST(unsigned, div_rem_to_pos_inf, is_valid_division_to_pos_inf);
   RUN_TEST(unsigned, div_rem_to_neg_inf, is_valid_division_to_neg_inf);
   RUN_TEST(unsigned, div_rem_to_odd, is_valid_division_to_odd);
   RUN_TEST(unsigned, div_rem_to_even, is_valid_division_to_even);
 
   RUN_TEST(unsigned, div_rem_ties_to_zero, is_valid_division_ties_to_zero);
   RUN_TEST(unsigned, div_rem_ties_away_zero, is_valid_division_ties_away_zero);
-  RUN_TEST(unsigned, div_rem_ties_to_inf, is_valid_division_ties_to_inf);
+  RUN_TEST(unsigned, div_rem_ties_to_pos_inf, is_valid_division_ties_to_pos_inf);
   RUN_TEST(unsigned, div_rem_ties_to_neg_inf, is_valid_division_ties_to_neg_inf);
   RUN_TEST(unsigned, div_rem_ties_to_odd, is_valid_division_ties_to_odd);
   RUN_TEST(unsigned, div_rem_ties_to_even, is_valid_division_ties_to_even);
