@@ -38,13 +38,13 @@ inline constexpr div_result<T> __div_rem_offset_quotient(T x, T y, T d) {
   if constexpr (std::is_signed_v<T>) {
     using U = std::make_unsigned_t<T>;
     return {
-      .quotient = T(x / y + d),
-      .remainder = T(U(x % y) - U(d) * U(y)),
+        .quotient = T(x / y + d),
+        .remainder = T(U(x % y) - U(d) * U(y)),
     };
   } else {
     return {
-      .quotient = T(x / y + d),
-      .remainder = T(x % y - d * y),
+        .quotient = T(x / y + d),
+        .remainder = T(x % y - d * y),
     };
   }
 }
@@ -52,8 +52,8 @@ inline constexpr div_result<T> __div_rem_offset_quotient(T x, T y, T d) {
 template<__integer T>
 constexpr div_result<T> div_rem_to_zero(T x, T y) {
   return {
-    .quotient = T(x / y),
-    .remainder = T(x % y),
+      .quotient = T(x / y),
+      .remainder = T(x % y),
   };
 }
 
