@@ -275,7 +275,7 @@ void fuzz_test_mod(std::string_view name) {
 #define RUN_TEST(type, div_rem, verify) fuzz_test<type, div_rem, verify>(#div_rem "<" #type ">")
 
 int main() {
-  RUN_TEST(int, div_rem_to_zero, is_valid_division);
+  RUN_TEST(int, div_rem_to_zero, is_valid_division_to_zero);
   RUN_TEST(int, div_rem_away_zero, is_valid_division_away_zero);
   RUN_TEST(int, div_rem_to_pos_inf, is_valid_division_to_pos_inf);
   RUN_TEST(int, div_rem_to_neg_inf, is_valid_division_to_neg_inf);
@@ -289,7 +289,7 @@ int main() {
   RUN_TEST(int, div_rem_ties_to_odd, is_valid_division_ties_to_odd);
   RUN_TEST(int, div_rem_ties_to_even, is_valid_division_ties_to_even);
 
-  RUN_TEST(unsigned, div_rem_to_zero, is_valid_division);
+  RUN_TEST(unsigned, div_rem_to_zero, is_valid_division_to_zero);
   RUN_TEST(unsigned, div_rem_away_zero, is_valid_division_away_zero);
   RUN_TEST(unsigned, div_rem_to_pos_inf, is_valid_division_to_pos_inf);
   RUN_TEST(unsigned, div_rem_to_neg_inf, is_valid_division_to_neg_inf);
