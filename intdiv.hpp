@@ -3,6 +3,7 @@
 
 #include <compare>
 #include <type_traits>
+#include <concepts>
 
 using __suppress_unused_include_compare_warning = std::strong_ordering;
 
