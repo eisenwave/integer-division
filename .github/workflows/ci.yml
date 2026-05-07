@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: ${{ matrix.compiler }} ${{ matrix.build_type }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            compiler: GCC
+            build_type: Debug
+            cmake_c_compiler: gcc
+            cmake_cxx_compiler: g++
+
+          - os: ubuntu-latest
+            compiler: GCC
+            build_type: Release
+            cmake_c_compiler: gcc
+            cmake_cxx_compiler: g++
+
+          - os: ubuntu-latest
+            compiler: Clang
+            build_type: Debug
+            cmake_c_compiler: clang
+            cmake_cxx_compiler: clang++
+
+          - os: ubuntu-latest
+            compiler: Clang
+            build_type: Release
+            cmake_c_compiler: clang
+            cmake_cxx_compiler: clang++
+
+          - os: ubuntu-latest
+            compiler: Clang libc++
+            build_type: Debug
+            cmake_c_compiler: clang
+            cmake_cxx_compiler: clang++
+            cxxflags: -stdlib=libc++
+            ldflags: -stdlib=libc++
+            install_libcxx: true
+
+          - os: ubuntu-latest
+            compiler: Clang libc++
+            build_type: Release
+            cmake_c_compiler: clang
+            cmake_cxx_compiler: clang++
+            cxxflags: -stdlib=libc++
+            ldflags: -stdlib=libc++
+            install_libcxx: true
+
+          - os: windows-latest
+            compiler: MSVC
+            build_type: Debug
+
+          - os: windows-latest
+            compiler: MSVC
+            build_type: Release
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install libc++
+        if: matrix.install_libcxx
+        run: sudo apt-get install -y libc++-dev libc++abi-dev
+
+      - name: Configure (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_C_COMPILER=${{ matrix.cmake_c_compiler }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cmake_cxx_compiler }} \
+            -DCMAKE_CXX_FLAGS="${{ matrix.cxxflags }}" \
+            -DCMAKE_EXE_LINKER_FLAGS="${{ matrix.ldflags }}"
+
+      - name: Configure (Windows)
+        if: runner.os == 'Windows'
+        run: cmake -S . -B build
+
+      - name: Build
+        run: cmake --build build --config ${{ matrix.build_type }}
+
+      - name: Test (Unix)
+        if: runner.os != 'Windows'
+        run: ./build/test
+
+      - name: Test (Windows)
+        if: runner.os == 'Windows'
+        run: .\build\${{ matrix.build_type }}\test.exe
