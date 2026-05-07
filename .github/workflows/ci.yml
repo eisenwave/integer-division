@@ -37,7 +37,7 @@ jobs:
             cmake_cxx_compiler: clang++
 
           - os: ubuntu-latest
-            compiler: Clang libc++
+            compiler: Clang-libcxx
             build_type: Debug
             cmake_c_compiler: clang
             cmake_cxx_compiler: clang++
@@ -46,7 +46,7 @@ jobs:
             install_libcxx: true
 
           - os: ubuntu-latest
-            compiler: Clang libc++
+            compiler: Clang-libcxx
             build_type: Release
             cmake_c_compiler: clang
             cmake_cxx_compiler: clang++
@@ -80,6 +80,7 @@ jobs:
             -DCMAKE_EXE_LINKER_FLAGS="${{ matrix.ldflags }}"
 
       - name: Configure (Windows)
+        # Visual Studio is a multi-config generator; build type is passed via --config at build time
         if: runner.os == 'Windows'
         run: cmake -S . -B build
 
