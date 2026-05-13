@@ -2,8 +2,8 @@
 #define INTDIV_HPP
 
 #include <compare>
-#include <type_traits>
 #include <concepts>
+#include <type_traits>
 
 using __suppress_unused_include_compare_warning = std::strong_ordering;
 
@@ -103,6 +103,28 @@ constexpr div_result<T> div_rem_to_neg_inf(T x, T y) {
 template<__integer T>
 constexpr T div_to_neg_inf(T x, T y) {
   return div_rem_to_neg_inf(x, y).quotient;
+}
+
+template<__integer T>
+constexpr div_result<T> div_rem_euclid(T x, T y) {
+  T quotient_sign = __sgn2(x) * __sgn2(y);
+  bool increment = x % y < 0;
+  return __div_rem_offset_quotient(x, y, T(increment) * quotient_sign);
+}
+
+template<__integer T>
+constexpr T div_euclid(T x, T y) {
+  return div_rem_euclid(x, y).quotient;
+}
+
+template<__integer T>
+constexpr T rem_euclid(T x, T y) {
+  if constexpr (std::is_signed_v<T>) {
+    using U = std::make_unsigned_t<T>;
+    return T(U(x % y) + U(x % y < 0) * U(__sgn2(y)) * U(y));
+  } else {
+    return x % y;
+  }
 }
 
 template<__integer T>

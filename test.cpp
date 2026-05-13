@@ -78,6 +78,21 @@ constexpr bool is_valid_division_to_neg_inf(T x, T y, T q, T r) {
 }
 
 template<class T>
+constexpr bool is_valid_euclid_remainder(T y, T r) {
+  if constexpr (std::is_signed_v<T>) {
+    return r >= 0 && std::abs(big_int(r)) < std::abs(big_int(y));
+  } else {
+    return r < y;
+  }
+}
+
+template<class T>
+constexpr bool is_valid_division_euclid(T x, T y, T q, T r) {
+  if (!is_valid_division(x, y, q, r)) return false;
+  return is_valid_euclid_remainder(y, r);
+}
+
+template<class T>
 constexpr bool is_valid_division_to_odd(T x, T y, T q, T r) {
   if (!is_valid_division(x, y, q, r)) return false;
   return r == 0 || q % 2 != 0;
@@ -115,6 +130,11 @@ static_assert(div_rem_away_zero(72'777'531u, 3'405'476'348u).quotient == 1);
 static_assert(72'777'531u == 1u * 3'405'476'348u + 962'268'479u);
 static_assert(div_rem_away_zero(72'777'531u, 3'405'476'348u).remainder == 962'268'479u);
 static_assert(div_rem_to_pos_inf(72'777'531u, 3'405'476'348u).remainder == 962'268'479u);
+static_assert(div_rem_euclid(-8, 3) == div_result<int>{-3, 1});
+static_assert(div_rem_euclid(-8, -3) == div_result<int>{3, 1});
+static_assert(div_rem_euclid(8, -3) == div_result<int>{-2, 2});
+static_assert(div_euclid(-8, 3) == -3);
+static_assert(rem_euclid(8, -3) == 2);
 
 template<class T>
 constexpr bool is_valid_division_ties_to_zero(T x, T y, T q, T r) {
@@ -165,6 +185,14 @@ constexpr bool is_valid_division_ties_to_even(T x, T y, T q, T r) {
 }
 
 using rng_type = std::default_random_engine;
+
+template<class T, int SignedValue>
+constexpr T signed_or_zero() {
+  if constexpr (std::is_signed_v<T>)
+    return T(SignedValue);
+  else
+    return T(0);
+}
 
 template<class T>
 inline auto interesting_values = [] {
@@ -242,10 +270,12 @@ void fuzz_test(std::string_view name) {
 
   std::default_random_engine rng{12345};
 
-  std::uniform_int_distribution<T> distr_tiny{std::is_signed_v<T> ? -4 : 0, 4};
+  constexpr T tiny_min = signed_or_zero<T, -4>();
+  std::uniform_int_distribution<T> distr_tiny{tiny_min, T(4)};
   sample<T, div_rem, verify>(rng, distr_tiny, 100);
 
-  std::uniform_int_distribution<T> distr_small{std::is_signed_v<T> ? -100 : 0, 100};
+  constexpr T small_min = signed_or_zero<T, -100>();
+  std::uniform_int_distribution<T> distr_small{small_min, T(100)};
   sample<T, div_rem, verify>(rng, distr_small, 100'000);
 
   std::uniform_int_distribution<T> distr_full;
@@ -272,6 +302,76 @@ void fuzz_test_mod(std::string_view name) {
   std::cout << "OK" << std::endl;
 }
 
+template<class T>
+void fuzz_test_euclid_projection(std::string_view name) {
+  std::cout << name << " ... " << std::flush;
+  auto verify = [](T x, T y) {
+    const auto result = div_rem_euclid(x, y);
+    return div_euclid(x, y) == result.quotient && rem_euclid(x, y) == result.remainder;
+  };
+
+  for (const T& x : interesting_values<T>) {
+    for (const T& y : interesting_values<T>) {
+      if (!is_div_defined(x, y)) continue;
+      if (!verify(x, y)) {
+        std::cout << "failed for (" << x << " / " << y << ")\n";
+        std::exit(1);
+      }
+    }
+  }
+
+  std::default_random_engine rng{12345};
+
+  constexpr T tiny_min = signed_or_zero<T, -4>();
+  std::uniform_int_distribution<T> distr_tiny{tiny_min, T(4)};
+  for (int i = 0; i < 100; ++i) {
+    const T x = distr_tiny(rng);
+    const T y = distr_tiny(rng);
+    if (!is_div_defined(x, y)) continue;
+    if (!verify(x, y)) {
+      std::cout << "failed for (" << x << " / " << y << ")\n";
+      std::exit(1);
+    }
+  }
+
+  std::uniform_int_distribution<T> distr_full;
+  for (int i = 0; i < full_samples; ++i) {
+    const T x = distr_full(rng);
+    const T y = distr_full(rng);
+    if (!is_div_defined(x, y)) continue;
+    if (!verify(x, y)) {
+      std::cout << "failed for (" << x << " / " << y << ")\n";
+      std::exit(1);
+    }
+  }
+
+  std::cout << "OK" << std::endl;
+}
+
+template<class T>
+void fuzz_test_rem_euclid(std::string_view name) {
+  std::cout << name << " ... " << std::flush;
+  std::default_random_engine rng{12345};
+  std::uniform_int_distribution<T> distr_full;
+
+  for (int i = 0; i < full_samples; ++i) {
+    T x = distr_full(rng);
+    T y = distr_full(rng);
+    if (!is_div_defined(x, y)) continue;
+    const auto result = div_rem_euclid(x, y);
+    T r = rem_euclid(x, y);
+    if (r != result.remainder) {
+      std::cout << "failure for (" << x << " rem_euclid " << y << ") = " << r << '\n';
+      std::exit(1);
+    }
+    if (!is_valid_euclid_remainder(y, r)) {
+      std::cout << "failure for (" << x << " rem_euclid " << y << ") = " << r << '\n';
+      std::exit(1);
+    }
+  }
+  std::cout << "OK" << std::endl;
+}
+
 #define RUN_TEST(type, div_rem, verify) fuzz_test<type, div_rem, verify>(#div_rem "<" #type ">")
 
 int main() {
@@ -279,6 +379,7 @@ int main() {
   RUN_TEST(int, div_rem_away_zero, is_valid_division_away_zero);
   RUN_TEST(int, div_rem_to_pos_inf, is_valid_division_to_pos_inf);
   RUN_TEST(int, div_rem_to_neg_inf, is_valid_division_to_neg_inf);
+  RUN_TEST(int, div_rem_euclid, is_valid_division_euclid);
   RUN_TEST(int, div_rem_to_odd, is_valid_division_to_odd);
   RUN_TEST(int, div_rem_to_even, is_valid_division_to_even);
 
@@ -293,6 +394,7 @@ int main() {
   RUN_TEST(unsigned, div_rem_away_zero, is_valid_division_away_zero);
   RUN_TEST(unsigned, div_rem_to_pos_inf, is_valid_division_to_pos_inf);
   RUN_TEST(unsigned, div_rem_to_neg_inf, is_valid_division_to_neg_inf);
+  RUN_TEST(unsigned, div_rem_euclid, is_valid_division_euclid);
   RUN_TEST(unsigned, div_rem_to_odd, is_valid_division_to_odd);
   RUN_TEST(unsigned, div_rem_to_even, is_valid_division_to_even);
 
@@ -305,4 +407,8 @@ int main() {
 
   fuzz_test_mod<int>("mod<int>");
   fuzz_test_mod<unsigned>("mod<unsigned>");
+  fuzz_test_euclid_projection<int>("euclid projections<int>");
+  fuzz_test_euclid_projection<unsigned>("euclid projections<unsigned>");
+  fuzz_test_rem_euclid<int>("rem_euclid<int>");
+  fuzz_test_rem_euclid<unsigned>("rem_euclid<unsigned>");
 }
