@@ -106,10 +106,25 @@ constexpr T div_to_neg_inf(T x, T y) {
 }
 
 template<__integer T>
+constexpr T __rem_euclid_from_rem(T rem, T y) {
+  if constexpr (std::is_signed_v<T>) {
+    using U = std::make_unsigned_t<T>;
+    return T(U(rem) + U(rem < 0) * U(__sgn2(y)) * U(y));
+  } else {
+    return rem;
+  }
+}
+
+template<__integer T>
 constexpr div_result<T> div_rem_euclid(T x, T y) {
   if constexpr (std::is_signed_v<T>) {
-    bool adjust = div_rem_to_zero(x, y).remainder < 0;
-    return __div_rem_offset_quotient(x, y, T(adjust) * -__sgn2(y));
+    T quotient = T(x / y);
+    T remainder = T(x % y);
+    bool adjust = remainder < 0;
+    return {
+        .quotient = T(quotient - T(adjust) * __sgn2(y)),
+        .remainder = __rem_euclid_from_rem(remainder, y),
+    };
   } else {
     return div_rem_to_zero(x, y);
   }
@@ -122,7 +137,7 @@ constexpr T div_euclid(T x, T y) {
 
 template<__integer T>
 constexpr T rem_euclid(T x, T y) {
-  return div_rem_euclid(x, y).remainder;
+  return __rem_euclid_from_rem(T(x % y), y);
 }
 
 template<__integer T>

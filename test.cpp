@@ -356,8 +356,9 @@ void fuzz_test_rem_euclid(std::string_view name) {
     T x = distr_full(rng);
     T y = distr_full(rng);
     if (!is_div_defined(x, y)) continue;
+    const auto result = div_rem_euclid(x, y);
     T r = rem_euclid(x, y);
-    if (r != div_rem_euclid(x, y).remainder) {
+    if (r != result.remainder) {
       std::cout << "failure for (" << x << " rem_euclid " << y << ") = " << r << '\n';
       std::exit(1);
     }
