@@ -403,7 +403,7 @@ int main() {
   RUN_TEST(unsigned, div_rem_ties_to_odd, is_valid_division_ties_to_odd);
   RUN_TEST(unsigned, div_rem_ties_to_even, is_valid_division_ties_to_even);
 
-  fuzz_test_mod<int>("mod<int>");
+fuzz_test_mod<int>("mod<int>");
   fuzz_test_mod<unsigned>("mod<unsigned>");
   fuzz_test_euclid_projection<int>("euclid projections<int>");
   fuzz_test_euclid_projection<unsigned>("euclid projections<unsigned>");
