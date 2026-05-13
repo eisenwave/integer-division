@@ -188,8 +188,10 @@ using rng_type = std::default_random_engine;
 
 template<class T, int SignedValue>
 constexpr T signed_or_zero() {
-  if constexpr (std::is_signed_v<T>) return T(SignedValue);
-  else return T(0);
+  if constexpr (std::is_signed_v<T>)
+    return T(SignedValue);
+  else
+    return T(0);
 }
 
 template<class T>
