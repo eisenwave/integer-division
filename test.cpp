@@ -129,7 +129,7 @@ static_assert(div_rem_euclid(-8, 3) == div_result<int>{-3, 1});
 static_assert(div_rem_euclid(-8, -3) == div_result<int>{3, 1});
 static_assert(div_rem_euclid(8, -3) == div_result<int>{-2, 2});
 static_assert(div_euclid(-8, 3) == -3);
-static_assert(mod_euclid(8, -3) == 2);
+static_assert(rem_euclid(8, -3) == 2);
 
 template<class T>
 constexpr bool is_valid_division_ties_to_zero(T x, T y, T q, T r) {
@@ -292,7 +292,7 @@ void fuzz_test_euclid_projection(std::string_view name) {
   std::cout << name << " ... " << std::flush;
   auto verify = [](T x, T y) {
     const auto result = div_rem_euclid(x, y);
-    return div_euclid(x, y) == result.quotient && mod_euclid(x, y) == result.remainder;
+    return div_euclid(x, y) == result.quotient && rem_euclid(x, y) == result.remainder;
   };
 
   for (const T& x : interesting_values<T>) {
@@ -333,7 +333,7 @@ void fuzz_test_euclid_projection(std::string_view name) {
 }
 
 template<class T>
-void fuzz_test_mod_euclid(std::string_view name) {
+void fuzz_test_rem_euclid(std::string_view name) {
   std::cout << name << " ... ";
   std::default_random_engine rng{12345};
   std::uniform_int_distribution<T> distr_full;
@@ -342,14 +342,14 @@ void fuzz_test_mod_euclid(std::string_view name) {
     T x = distr_full(rng);
     T y = distr_full(rng);
     if (!is_div_defined(x, y)) continue;
-    T r = mod_euclid(x, y);
+    T r = rem_euclid(x, y);
     if (r != div_rem_euclid(x, y).remainder) {
-      std::cout << "failure for (" << x << " mod_euclid " << y << ") = " << r << '\n';
+      std::cout << "failure for (" << x << " rem_euclid " << y << ") = " << r << '\n';
       std::exit(1);
     }
     if constexpr (std::is_signed_v<T>) {
       if (r < 0 || std::abs(big_int(r)) >= std::abs(big_int(y))) {
-        std::cout << "failure for (" << x << " mod_euclid " << y << ") = " << r << '\n';
+        std::cout << "failure for (" << x << " rem_euclid " << y << ") = " << r << '\n';
         std::exit(1);
       }
     }
@@ -394,6 +394,6 @@ int main() {
   fuzz_test_mod<unsigned>("mod<unsigned>");
   fuzz_test_euclid_projection<int>("euclid projections<int>");
   fuzz_test_euclid_projection<unsigned>("euclid projections<unsigned>");
-  fuzz_test_mod_euclid<int>("mod_euclid<int>");
-  fuzz_test_mod_euclid<unsigned>("mod_euclid<unsigned>");
+  fuzz_test_rem_euclid<int>("rem_euclid<int>");
+  fuzz_test_rem_euclid<unsigned>("rem_euclid<unsigned>");
 }

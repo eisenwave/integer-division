@@ -121,7 +121,7 @@ constexpr T div_euclid(T x, T y) {
 }
 
 template<__integer T>
-constexpr T mod_euclid(T x, T y) {
+constexpr T rem_euclid(T x, T y) {
   return div_rem_euclid(x, y).remainder;
 }
 
