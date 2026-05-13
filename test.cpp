@@ -257,10 +257,18 @@ void fuzz_test(std::string_view name) {
 
   std::default_random_engine rng{12345};
 
-  std::uniform_int_distribution<T> distr_tiny{std::is_signed_v<T> ? -4 : 0, 4};
+  constexpr T tiny_min = [] {
+    if constexpr (std::is_signed_v<T>) return T(-4);
+    else return T(0);
+  }();
+  std::uniform_int_distribution<T> distr_tiny{tiny_min, T(4)};
   sample<T, div_rem, verify>(rng, distr_tiny, 100);
 
-  std::uniform_int_distribution<T> distr_small{std::is_signed_v<T> ? -100 : 0, 100};
+  constexpr T small_min = [] {
+    if constexpr (std::is_signed_v<T>) return T(-100);
+    else return T(0);
+  }();
+  std::uniform_int_distribution<T> distr_small{small_min, T(100)};
   sample<T, div_rem, verify>(rng, distr_small, 100'000);
 
   std::uniform_int_distribution<T> distr_full;
@@ -307,7 +315,11 @@ void fuzz_test_euclid_projection(std::string_view name) {
 
   std::default_random_engine rng{12345};
 
-  std::uniform_int_distribution<T> distr_tiny{std::is_signed_v<T> ? -4 : 0, 4};
+  constexpr T tiny_min = [] {
+    if constexpr (std::is_signed_v<T>) return T(-4);
+    else return T(0);
+  }();
+  std::uniform_int_distribution<T> distr_tiny{tiny_min, T(4)};
   for (int i = 0; i < 100; ++i) {
     const T x = distr_tiny(rng);
     const T y = distr_tiny(rng);
