@@ -78,13 +78,18 @@ constexpr bool is_valid_division_to_neg_inf(T x, T y, T q, T r) {
 }
 
 template<class T>
-constexpr bool is_valid_division_euclid(T x, T y, T q, T r) {
-  if (!is_valid_division(x, y, q, r)) return false;
+constexpr bool is_valid_euclid_remainder(T y, T r) {
   if constexpr (std::is_signed_v<T>) {
     return r >= 0 && std::abs(big_int(r)) < std::abs(big_int(y));
   } else {
     return r < y;
   }
+}
+
+template<class T>
+constexpr bool is_valid_division_euclid(T x, T y, T q, T r) {
+  if (!is_valid_division(x, y, q, r)) return false;
+  return is_valid_euclid_remainder(y, r);
 }
 
 template<class T>
@@ -181,6 +186,12 @@ constexpr bool is_valid_division_ties_to_even(T x, T y, T q, T r) {
 
 using rng_type = std::default_random_engine;
 
+template<class T, int SignedValue>
+constexpr T signed_or_zero() {
+  if constexpr (std::is_signed_v<T>) return T(SignedValue);
+  else return T(0);
+}
+
 template<class T>
 inline auto interesting_values = [] {
   if constexpr (std::is_signed_v<T>) {
@@ -257,17 +268,11 @@ void fuzz_test(std::string_view name) {
 
   std::default_random_engine rng{12345};
 
-  constexpr T tiny_min = [] {
-    if constexpr (std::is_signed_v<T>) return T(-4);
-    else return T(0);
-  }();
+  constexpr T tiny_min = signed_or_zero<T, -4>();
   std::uniform_int_distribution<T> distr_tiny{tiny_min, T(4)};
   sample<T, div_rem, verify>(rng, distr_tiny, 100);
 
-  constexpr T small_min = [] {
-    if constexpr (std::is_signed_v<T>) return T(-100);
-    else return T(0);
-  }();
+  constexpr T small_min = signed_or_zero<T, -100>();
   std::uniform_int_distribution<T> distr_small{small_min, T(100)};
   sample<T, div_rem, verify>(rng, distr_small, 100'000);
 
@@ -315,10 +320,7 @@ void fuzz_test_euclid_projection(std::string_view name) {
 
   std::default_random_engine rng{12345};
 
-  constexpr T tiny_min = [] {
-    if constexpr (std::is_signed_v<T>) return T(-4);
-    else return T(0);
-  }();
+  constexpr T tiny_min = signed_or_zero<T, -4>();
   std::uniform_int_distribution<T> distr_tiny{tiny_min, T(4)};
   for (int i = 0; i < 100; ++i) {
     const T x = distr_tiny(rng);
@@ -359,11 +361,9 @@ void fuzz_test_rem_euclid(std::string_view name) {
       std::cout << "failure for (" << x << " rem_euclid " << y << ") = " << r << '\n';
       std::exit(1);
     }
-    if constexpr (std::is_signed_v<T>) {
-      if (r < 0 || std::abs(big_int(r)) >= std::abs(big_int(y))) {
-        std::cout << "failure for (" << x << " rem_euclid " << y << ") = " << r << '\n';
-        std::exit(1);
-      }
+    if (!is_valid_euclid_remainder(y, r)) {
+      std::cout << "failure for (" << x << " rem_euclid " << y << ") = " << r << '\n';
+      std::exit(1);
     }
   }
   std::cout << "OK" << std::endl;
