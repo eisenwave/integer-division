@@ -106,6 +106,26 @@ constexpr T div_to_neg_inf(T x, T y) {
 }
 
 template<__integer T>
+constexpr div_result<T> div_rem_euclid(T x, T y) {
+  if constexpr (std::is_signed_v<T>) {
+    bool adjust = x % y < 0;
+    return __div_rem_offset_quotient(x, y, T(adjust) * -__sgn2(y));
+  } else {
+    return div_rem_to_zero(x, y);
+  }
+}
+
+template<__integer T>
+constexpr T div_euclid(T x, T y) {
+  return div_rem_euclid(x, y).quotient;
+}
+
+template<__integer T>
+constexpr T mod_euclid(T x, T y) {
+  return div_rem_euclid(x, y).remainder;
+}
+
+template<__integer T>
 constexpr div_result<T> div_rem_to_odd(T x, T y) {
   T quotient_sign = __sgn2(x) * __sgn2(y);
   bool increment = (x % y != 0) & (x / y % 2 == 0);
