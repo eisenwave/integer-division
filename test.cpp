@@ -346,7 +346,7 @@ void fuzz_test_euclid_projection(std::string_view name) {
 
 template<class T>
 void fuzz_test_rem_euclid(std::string_view name) {
-  std::cout << name << " ... ";
+  std::cout << name << " ... " << std::flush;
   std::default_random_engine rng{12345};
   std::uniform_int_distribution<T> distr_full;
 

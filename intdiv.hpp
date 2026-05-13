@@ -108,7 +108,7 @@ constexpr T div_to_neg_inf(T x, T y) {
 template<__integer T>
 constexpr div_result<T> div_rem_euclid(T x, T y) {
   if constexpr (std::is_signed_v<T>) {
-    bool adjust = x % y < 0;
+    bool adjust = div_rem_to_zero(x, y).remainder < 0;
     return __div_rem_offset_quotient(x, y, T(adjust) * -__sgn2(y));
   } else {
     return div_rem_to_zero(x, y);
